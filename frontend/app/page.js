@@ -11,6 +11,11 @@ export default function HomePage() {
 
   const createPaste = async () => {
     try {
+      const payload = {
+      content,
+      ttl_seconds: Number(ttl),
+      max_views: Number(maxViews),
+    };
       const res = await fetch(
         `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/pastes`,
         {

@@ -8,14 +8,33 @@ export default function HomePage() {
   const [maxViews, setMaxViews] = useState("");
   const [link, setLink] = useState("");
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false); // ✅ loading state
 
   const createPaste = async () => {
+    setError("");
+    setLink("");
+    if (!content.trim()) {
+      setError("Content is required");
+      return;
+    }
+    if (!ttl.trim()) {
+      setError("TTL is required");
+      return;
+    }
+    if (!maxViews.trim()) {
+      setError("Max Views is required");
+      return;
+    }
+
+    setLoading(true); // start loading
+
     try {
       const payload = {
-      content,
-      ttl_seconds: Number(ttl),
-      max_views: Number(maxViews),
-    };
+        content,
+        ttl_seconds: Number(ttl),
+        max_views: Number(maxViews),
+      };
+
       const res = await fetch(
         `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/pastes`,
         {
@@ -26,7 +45,6 @@ export default function HomePage() {
       );
 
       const text = await res.text();
-
       let data;
       try {
         data = JSON.parse(text);
@@ -43,6 +61,8 @@ export default function HomePage() {
     } catch (err) {
       setError(err.message);
       console.error(err);
+    } finally {
+      setLoading(false); // stop loading
     }
   };
 
@@ -81,7 +101,9 @@ export default function HomePage() {
 
       <br />
 
-      <button onClick={createPaste}>Create Paste</button>
+      <button onClick={createPaste} disabled={loading}>
+        {loading ? "Creating..." : "Create Paste"}
+      </button>
 
       {link && (
         <p>

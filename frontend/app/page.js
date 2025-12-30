@@ -10,49 +10,35 @@ export default function HomePage() {
   const [error, setError] = useState("");
 
   const createPaste = async () => {
-    if (!content.trim()) {
-      setError("Content is required");
-      return;
-    }
+    try {
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/pastes`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        }
+      );
 
-    if (!ttl.trim()) {
-      setError("Time Limit (TTL) is required");
-      return;
-    }
+      const text = await res.text();
 
-    if (!maxViews.trim()) {
-      setError("Max Views is required");
-      return;
-    }
-
-    setError("");
-
-    const payload = {
-      content,
-      ttl_seconds: Number(ttl),
-      max_views: Number(maxViews),
-    };
-
-    const res = await fetch(
-      `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/pastes`,
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
+      let data;
+      try {
+        data = JSON.parse(text);
+      } catch {
+        throw new Error("Invalid JSON returned from server");
       }
-    );
 
-    const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Failed to create paste");
 
-    if (!res.ok) {
-      setError(data.error || "Failed to create paste");
-      return;
+      setContent("");
+      setTtl("");
+      setMaxViews("");
+      setLink(data.url);
+    } catch (err) {
+      setError(err.message);
+      console.error(err);
     }
-
-    setContent("");
-    setTtl("");
-    setMaxViews("");
-    setLink(data.url);
   };
 
   return (

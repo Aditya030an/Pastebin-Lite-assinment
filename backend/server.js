@@ -1,17 +1,29 @@
-import mongoose from "mongoose";
-import dotenv from "dotenv";
-import app from "./app.js";
+import express from "express";
+import cors from "cors";
+import 'dotenv/config'
+import connectDb from "./config/mongodb.js";
+import pasteRoutes from "./routes/paste.routes.js";
+import healthRoutes from "./routes/health.routes.js";
 
-dotenv.config();
+//App config
+const app = express();
+const port = process.env.PORT || 4000;
+connectDb();
 
-const PORT = process.env.PORT || 5000;
 
-mongoose
-  .connect(process.env.MONGO_URI)
-  .then(() => {
-    console.log("✅ Connected to MongoDB");
-    app.listen(PORT, () => console.log(`🚀 Backend running on port ${PORT}`));
-  })
-  .catch((err) => {
-    console.error("❌ Failed to connect to MongoDB:", err.message);
-  });
+//middewares
+
+app.use(express.json());
+app.use(cors());
+
+//api end points
+app.use("/api/healthz", healthRoutes);
+app.use("/api/pastes", pasteRoutes);
+
+app.get("/" ,(req , res)=>{
+    res.send("API working")
+})
+
+app.listen(port , ()=>{
+    console.log("server started on PORT:" + port)
+})
